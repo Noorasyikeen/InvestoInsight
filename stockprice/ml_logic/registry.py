@@ -57,7 +57,6 @@ def save_model(model) -> None:
     print("✅ Model saved locally")
 
     if MODEL_TARGET == "gcs":
-        # 🎁 We give you this piece of code as a gift. Please read it carefully! Add a breakpoint if needed!
 
         model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
         client = storage.Client()

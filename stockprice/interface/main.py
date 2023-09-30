@@ -4,6 +4,7 @@ import pandas as pd
 from pathlib import Path
 from colorama import Fore, Style
 from dateutil.parser import parse
+from google.cloud import storage
 
 from stockprice.params import *
 from stockprice.ml_logic.data import get_data_with_cache, clean_data, load_data_to_bq
@@ -11,6 +12,15 @@ from stockprice.ml_logic.TFT_preprocessor import preprocessing
 from stockprice.ml_logic.TFT_model import timeseries_instance, dataloader, optimal_learning_rate, initialize_model, train_model, evaluate_model
 from stockprice.ml_logic.registry import load_model, save_model, save_results
 # from stockprice.ml_logic.registry import mlflow_run, mlflow_transition_model
+
+def write_read(blob_name):
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+
+    with blob.open("r") as f:
+        print(f.read())
 
 def preprocess() -> None:
     """
