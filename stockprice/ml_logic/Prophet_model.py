@@ -25,7 +25,7 @@ def load_train_test (data):
 
     return train_data, test_data
 
-def initialise_model(train_data, data):
+def initialise_model_all(train_data, data):
 #Runs a loop on all stocks and generates forecast for all.
     #Tickers
     tickers = data['Tickers'].unique()
@@ -55,7 +55,32 @@ def initialise_model(train_data, data):
         # Concatenate the current forecast with the combined_forecasts DataFrame
         combined_forecasts = pd.concat([combined_forecasts, forecast])
 
-    print("✅ Combined Forecast Done")
+    print("✅ Forecast Done")
 
 
     return combined_forecasts
+
+def initialise_model_single(train_data, data, ticker):
+
+    #Ticker data
+    ticker_data = train_data.loc[train_data['Tickers'] == ticker]
+
+    # Initialize and fit the Prophet model for the current ticker
+    model = Prophet(changepoint_prior_scale = 0.5,
+                    seasonality_prior_scale = 0.1,
+                    seasonality_mode = 'additive',
+                    changepoint_range = 0.95)
+    model.fit(ticker_data)
+
+    # Create a future DataFrame for predictions
+    future = model.make_future_dataframe(periods=12, freq='M')  # Adjust as needed
+
+    # Make predictions for the current ticker
+    forecast = model.predict(future)
+
+    #fig plot of prediction
+    fig = model.plot(forecast)
+
+    print("✅ Forecast Done")
+
+    return forecast, fig
