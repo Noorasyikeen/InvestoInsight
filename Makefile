@@ -19,5 +19,5 @@ run_evaluate:
 
 run_all: run_preprocess run_train run_pred run_evaluate
 
-run_workflow:
-	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m stockprice.interface.workflow
+# run_workflow:
+# 	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m stockprice.interface.workflow
