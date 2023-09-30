@@ -23,7 +23,6 @@ app.state.model = load_model()
 def predict(
         ticker: str, # AAPL
         start_date: str,  # 2013-07-06
-        end_date: str
     ):      #
     """
     Assumes `start_date` is provided as a string by the user in "%Y-%m-%d" format
