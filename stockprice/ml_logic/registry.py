@@ -2,6 +2,8 @@ import glob
 import os
 import time
 import pickle
+import io
+import pandas as pd
 
 from colorama import Fore, Style
 from google.cloud import storage
@@ -118,7 +120,7 @@ def load_model(stage="Production"):
         print(Fore.BLUE + f"\nLoad latest model from GCS..." + Style.RESET_ALL)
 
         client = storage.Client()
-        blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix="model"))
+        blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix="models"))
 
         try:
             latest_blob = max(blobs, key=lambda x: x.updated)
