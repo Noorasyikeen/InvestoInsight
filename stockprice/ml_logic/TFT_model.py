@@ -21,7 +21,7 @@ def timeseries_instance(data):
     Create multivariate timeseries instance
     """
     prediction_length=6
-    train_split = data["time_idx"].max() - prediction_length * 2
+    train_split = data["time_idx"].max() - prediction_length
 
     training = TimeSeriesDataSet(
         data[lambda x:x.time_idx <= train_split],
@@ -29,7 +29,7 @@ def timeseries_instance(data):
         target='stock_price',
         time_idx='time_idx',
         max_encoder_length=6,
-        max_prediction_length=12,
+        max_prediction_length=6,
         static_categoricals=['Tickers'],
         time_varying_known_reals=["Date", "Dividend", 'Volume', 'fed_funds_rate', 'GDP',
                                 'debt_to_equity', 'EPS', 'return_on_equity', 'quick ratio',
@@ -137,7 +137,7 @@ def initialize_model(training, learning_rate):
 
     tft = TemporalFusionTransformer.from_dataset(
         training,
-        learning_rate=learning_rate + 0.0005,
+        learning_rate=0.003, # learning_rate + 0.0005,
         hidden_size=160,
         attention_head_size=4,
         dropout=0.1,
