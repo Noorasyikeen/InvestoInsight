@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
+import torch
 
 from pathlib import Path
 from colorama import Fore, Style
 from dateutil.parser import parse
+from google.cloud import storage
 
 from stockprice.params import *
-from stockprice.ml_logic.data import get_data_with_cache, clean_data, load_data_to_bq
+from stockprice.ml_logic.data import get_data_with_cache, clean_data, df_to_gcp_csv
 from stockprice.ml_logic.TFT_preprocessor import preprocessing
 from stockprice.ml_logic.TFT_model import timeseries_instance, dataloader, optimal_learning_rate, initialize_model, train_model, evaluate_model
 from stockprice.ml_logic.registry import load_model, save_model, save_results
@@ -14,21 +16,16 @@ from stockprice.ml_logic.registry import load_model, save_model, save_results
 
 def preprocess() -> None:
     """
-    - Get raw dataset from raw_data folder
-    - Implement on Google Big Query for updated data (later)
+    - Get raw dataset from gcs bucket
+    - Cache result
     """
 
     print(Fore.MAGENTA + "\n ⭐️ Use case: preprocess" + Style.RESET_ALL)
 
-    query = f"""
-        SELECT {",".join(COLUMN_NAMES_RAW)}
-        FROM {GCP_PROJECT}.{BQ_DATASET}.raw_
-    """
-
     # Retrieve data using `get_data_with_cache`
-    data_query_cache_path = Path(LOCAL_DATA_PATH).joinpath("raw", f"query.csv")
+    data_query_cache_path = Path(LOCAL_DATA_PATH).joinpath("raw", f"{GCS_DATASET}.csv")
     data_query = get_data_with_cache(
-        query=query,
+        bucket_name = BUCKET_NAME,
         gcp_project=GCP_PROJECT,
         cache_path=data_query_cache_path,
         data_has_header=True
@@ -38,13 +35,10 @@ def preprocess() -> None:
     data_clean = clean_data(data_query)
     data = preprocessing(data_clean)
 
-    load_data_to_bq(
-        data,
-        gcp_project=GCP_PROJECT,
-        bq_dataset=BQ_DATASET,
-        table=f'data',
-        truncate=True
-    )
+    df_to_gcp_csv(
+        df=data,
+        bucket_name=BUCKET_NAME,
+        dest_file_name=f'processed_{GCS_DATASET}')
 
     print("✅ preprocess() done \n")
 
@@ -77,10 +71,10 @@ def train(data: pd.DataFrame = None) -> np.ndarray:
         row_count=len(train_dataloader),
     )
 
-    # Save results on the hard drive using taxifare.ml_logic.registry
+    # Save results on the hard drive using stockprice.ml_logic.registry
     save_results(params=params, metrics=dict(metrics))
 
-    # Save model weight on the hard drive (and optionally on GCS too!)
+    # Save model weight on the hard drive (and optionally on GCS)
     save_model(model=best_tft)
 
     print("✅ train() done \n")
@@ -132,26 +126,29 @@ def evaluate(
     return metrics_dict
 
 
-def pred(data, X_pred: pd.DataFrame = None) -> np.ndarray:
+def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
     """
     Make a prediction using the latest trained model
     """
 
     print("\n⭐️ Use case: predict")
 
+    # predict 6 months from current date
     max_prediction_length = 6
 
     if X_pred is None:
         X_pred = pd.DataFrame(dict(
-        start_date=[pd.to_datetime("2023-07-31")],
+        input_date=[pd.to_datetime("2023-07-31")],
         Ticker="AAPL"
     ))
 
     model = load_model()
     assert model is not None
 
+    data = preprocess()
+
     start_date = pd.to_datetime("2018-01-31")
-    target_date = pd.to_datetime(X_pred['starting_date'])  # Replace with start date input from streamlit
+    target_date = pd.to_datetime(X_pred['input_date'])  # Replace with start date input from streamlit
 
     # Calculate no. of months between the start and target date
     num_months = (target_date.year - start_date.year) * 12 + (target_date.month - start_date.month)
@@ -177,12 +174,17 @@ def pred(data, X_pred: pd.DataFrame = None) -> np.ndarray:
 
     prediction = model.predict(
         encoder_data.filter(lambda x: (x.Tickers == ticker) & (x.time_idx_first_prediction == 15)),
-        mode="quantiles",
+        mode="raw",
+        return_x=True,
         trainer_kwargs=dict(accelerator='cpu')
     )
 
+    tensor = prediction.output[0]
+    row_means = torch.mean(tensor, dim=2)
+    values_as_float = row_means[0].to_list()
+
     print("\n✅ prediction done: ", prediction, prediction.shape, "\n")
-    return prediction
+    return prediction, values_as_float
 
 
 if __name__ == '__main__':

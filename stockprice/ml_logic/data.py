@@ -1,11 +1,32 @@
+import io
 import numpy as np
 import pandas as pd
 
-from google.cloud import bigquery
+from google.cloud import bigquery, storage
 from colorama import Fore, Style
 from pathlib import Path
 
 from stockprice.params import *
+
+def gcp_csv_to_df(bucket_name, gcs_dataset):
+    """
+    Read dataset from GCS bucket
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(f"{gcs_dataset}.csv")
+    data = blob.download_as_bytes()
+    df = pd.read_csv(io.BytesIO(data))
+    print(f'Pulled down file from bucket {bucket_name}, file name: {gcs_dataset}')
+
+    return df
+
+def df_to_gcp_csv(df, bucket_name, dest_file_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(dest_file_name)
+    blob.upload_from_string(df.to_csv(), 'text/csv')
+    print(f'DataFrame uploaded to bucket {bucket_name}, file name: {dest_file_name}')
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -21,8 +42,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def get_data_with_cache(
-        gcp_project:str,
-        query:str,
+        bucket_name:str,
+        gcs_dataset:str,
         cache_path:Path,
         data_has_header=True
     ) -> pd.DataFrame:
@@ -34,11 +55,8 @@ def get_data_with_cache(
         print(Fore.BLUE + "\nLoad data from local CSV..." + Style.RESET_ALL)
         df = pd.read_csv(cache_path, header='infer' if data_has_header else None)
     else:
-        print(Fore.BLUE + "\nLoad data from BigQuery server..." + Style.RESET_ALL)
-        client = bigquery.Client(project=gcp_project)
-        query_job = client.query(query)
-        result = query_job.result()
-        df = result.to_dataframe()
+        print(Fore.BLUE + "\nLoad data from GCS bucket..." + Style.RESET_ALL)
+        df = gcp_csv_to_df(bucket_name, gcs_dataset)
 
         # Store as CSV if the BQ query returned at least one valid line
         if df.shape[0] > 1:
