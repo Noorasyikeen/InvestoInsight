@@ -1,9 +1,10 @@
 import copy
+import pickle
 from pathlib import Path
 import warnings
 
 import lightning.pytorch as pl
-from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
+from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.tuner import Tuner
 import numpy as np
@@ -118,6 +119,9 @@ def initialize_model(training, learning_rate):
                                     patience=5,
                                     verbose=True,
                                     mode='min')
+    checkpoint_callback = ModelCheckpoint(save_top_k=1,
+                                          monitor='val_loss',
+                                          mode='min')
     # log the learning rate
     lr_logger = LearningRateMonitor()
 
@@ -131,7 +135,8 @@ def initialize_model(training, learning_rate):
         enable_model_summary=True,
         gradient_clip_val=0.1,
         # fast_dev_run=True # for checking that networkor dataset has no serious bugs
-        callbacks=[lr_logger, early_stop_callback],
+        callbacks=[lr_logger, early_stop_callback, checkpoint_callback],
+        enable_checkpointing=True,
         logger=logger
         )
 
@@ -160,6 +165,7 @@ def train_model(trainer, tft, train_dataloader, val_dataloader):
         val_dataloaders=val_dataloader
         )
     best_model_path = trainer.checkpoint_callback.best_model_path
+    best_model_score = trainer.checkpoint_callback.best_model_score
     # print(best_model_path)
     best_tft = TemporalFusionTransformer.load_from_checkpoint(best_model_path)
 
@@ -185,3 +191,30 @@ def evaluate_model(best_tft, val_dataloader):
     print(f"RMSE: {round(RMSE, 2)}")
 
     return metrics
+
+def hyperparameter_tuning(train_dataloader, val_dataloader):
+    study = optimize_hyperparameters(
+        train_dataloader,
+        val_dataloader,
+        model_path='optuna_test',
+        n_trials=200,
+        max_epochs=50,
+        gradient_clip_val_range=(0.01, 1.0),
+        hidden_size_range=(8, 240),
+        hidden_continuous_size_range=(8, 240),
+        attention_head_size_range=(1, 4),
+        learning_rate_range=(0.001, 0.1),
+        dropout_range=(0.1, 0.3),
+        trainer_kwargs=dict(accelerator='cpu',limit_train_batches=30),
+        reduce_on_plateau_patience=4,
+        use_learning_rate_finder=False # use Optuna to find ideal learning rate or use in-built learning rate finder
+    )
+
+    # save results
+    with open("test_study.pkl", "wb") as fout:
+        pickle.dump(study, fout)
+
+    # show best hyperparameters
+    best_hyperparameters = (study.best_trial_params)
+
+    return best_hyperparameters
