@@ -50,5 +50,3 @@ test_api_predict:
 test_api_on_prod:
 	pytest \
 	tests/api/test_cloud_endpoints.py --asyncio-mode=strict -W "ignore"
-
-=
