@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import torch
 
 from pathlib import Path
 from colorama import Fore, Style
@@ -173,12 +174,17 @@ def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
 
     prediction = model.predict(
         encoder_data.filter(lambda x: (x.Tickers == ticker) & (x.time_idx_first_prediction == 15)),
-        mode="quantiles",
+        mode="raw",
+        return_x=True,
         trainer_kwargs=dict(accelerator='cpu')
     )
 
+    tensor = prediction.output[0]
+    row_means = torch.mean(tensor, dim=2)
+    values_as_float = row_means[0].to_list()
+
     print("\n✅ prediction done: ", prediction, prediction.shape, "\n")
-    return prediction
+    return prediction, values_as_float
 
 
 if __name__ == '__main__':
