@@ -46,14 +46,16 @@ def predict(
     assert model is not None
 
     # X_processed = preprocess_features(X_pred)
-    predictions = pred(X_pred)
+    predictions, values_as_float = pred(X_pred)
 
     # ⚠️ fastapi only accepts simple Python data types as a return value
     # among them dict, list, str, int, float, bool
     # in order to be able to convert the api response to JSON
 
     # Calculate returns here
-    return dict(stockprice=float(predictions))
+
+    # return predicted prices in list
+    return values_as_float
 
 @app.get("/")
 def root():
