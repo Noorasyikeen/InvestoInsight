@@ -3,6 +3,7 @@ import os
 import time
 import pickle
 import io
+import torch
 import pandas as pd
 
 from colorama import Fore, Style
@@ -61,14 +62,14 @@ def save_model(model) -> None:
         os.makedirs(LOCAL_REGISTRY_PATH)
 
     # Save model locally
-    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{timestamp}.h5")
-    model.save(model_path)
+    model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", f"{timestamp}.pth")
+    torch.save(model, model_path)
 
     print("✅ Model saved locally")
 
     if MODEL_TARGET == "gcs":
 
-        model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
+        model_filename = model_path.split("/")[-1] # e.g. "20230805-200538.pth" for instance
         client = storage.Client()
         bucket = client.bucket(BUCKET_NAME)
         blob = bucket.blob(f"models/{model_filename}")
@@ -121,7 +122,7 @@ def load_model(stage="Production"):
 
         print(Fore.BLUE + f"\nLoad latest model from disk..." + Style.RESET_ALL)
 
-        latest_model = load_model(most_recent_model_path_on_disk)
+        latest_model = torch.load(most_recent_model_path_on_disk)
 
         print("✅ Model loaded from local disk")
 
@@ -135,23 +136,26 @@ def load_model(stage="Production"):
         blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix="models"))
 
         try:
-            ckpt_blobs = [blob for blob in blobs if blob.name.endswith('.ckpt')]
+            pth_blobs = [blob for blob in blobs if blob.name.endswith('.pth')]
 
-            if not ckpt_blobs:
-                print(f"\n❌ No .ckpt model found in GCS bucket")
-            else:
-                # Find the latest .ckpt model based on the 'updated' timestamp
-                latest_blob = max(ckpt_blobs, key=lambda x: x.updated)
-                latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
-                latest_blob.download_to_filename(latest_model_path_to_save)
-                latest_model = load_model(latest_model_path_to_save)
+            if not pth_blobs:
+                print(f"\n❌ No .pth model found in GCS bucket")
+                return None
 
-                print("✅ Latest .ckpt model downloaded from cloud storage")
+            # Find the latest .pth model based on the 'updated' timestamp
+            latest_blob = max(pth_blobs, key=lambda x: x.updated)
+            latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
+            latest_blob.download_to_filename(latest_model_path_to_save)
 
-            return latest_model
-        except:
-            print(f"\n❌ No model found in GCS bucket {BUCKET_NAME}")
+            # Load the latest .pth model
+            tft_model = torch.load(latest_model_path_to_save)
 
+            print("✅ Latest .pth model downloaded from cloud storage")
+
+            return tft_model
+
+        except Exception as e:
+            print(f"\n❌ Error: {str(e)}")
             return None
 
     # elif MODEL_TARGET == "mlflow":
