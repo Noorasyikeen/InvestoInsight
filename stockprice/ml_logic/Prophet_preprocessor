@@ -1,0 +1,12 @@
+import pandas as pd
+from datetime import datetime
+
+def rename_date_to_ds(raw_data):
+    # prophet requires specific column header names for date (ds) and target (y)
+    data = raw_data.copy()
+    data['Date'] = pd.to_datetime(data['Date'])
+    data = data.rename(columns = {"Date" : "ds", "stock_price": "y"})
+
+    print("✅ Prophet Preprocessing")
+
+    return data
