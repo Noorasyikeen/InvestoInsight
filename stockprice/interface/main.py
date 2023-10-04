@@ -26,7 +26,8 @@ def preprocess() -> None:
     data_query_cache_path = Path(LOCAL_DATA_PATH).joinpath("raw", f"{GCS_DATASET}.csv")
     data_query = get_data_with_cache(
         bucket_name = BUCKET_NAME,
-        gcp_project=GCP_PROJECT,
+        # gcp_project=GCP_PROJECT,
+        gcs_dataset=GCS_DATASET,
         cache_path=data_query_cache_path,
         data_has_header=True
     )
@@ -126,7 +127,7 @@ def evaluate(
     return metrics_dict
 
 
-def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
+def pred(ticker):
     """
     Make a prediction using the latest trained model
     """
@@ -136,11 +137,8 @@ def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
     # predict 6 months from current date
     max_prediction_length = 6
 
-    if X_pred is None:
-        X_pred = pd.DataFrame(dict(
-        input_date=[pd.to_datetime("2023-07-31")],
-        Ticker="AAPL"
-    ))
+    if ticker is None:
+        ticker="AAPL"
 
     model = load_model()
     assert model is not None
@@ -148,15 +146,16 @@ def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
     data = preprocess()
 
     start_date = pd.to_datetime("2018-01-31")
-    target_date = pd.to_datetime(X_pred['input_date'])  # Replace with start date input from streamlit
+    # target_date = pd.to_datetime(X_pred['input_date'])  # Replace with start date input from streamlit
 
-    # Calculate no. of months between the start and target date
-    num_months = (target_date.year - start_date.year) * 12 + (target_date.month - start_date.month)
-    target_idx = num_months
-    ticker = X_pred['Ticker']
+    # # Calculate no. of months between the start and target date
+    # num_months = (target_date.year - start_date.year) * 12 + (target_date.month - start_date.month)
+    # target_idx = num_months
+    ticker = ticker
 
     # select last 12 months from data (max_encoder_length is 12)
     encoder_data = data[lambda x: (x.Tickers == ticker) & (x.Index > x.Index.max() - 12)]
+    # encoder_data = data[(data['Tickers']== ticker) & (data['Index'] == data['Index'].max()-12)]
 
     # select last known data point and create decoder data from it by repeating it and incrementing the month
     last_data = data[lambda x: (x.Tickers == ticker) & (x.Index == x.Index.max())]
@@ -173,7 +172,8 @@ def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
     new_prediction_data = pd.concat([encoder_data, decoder_data], ignore_index=True)
 
     prediction = model.predict(
-        encoder_data.filter(lambda x: (x.Tickers == ticker) & (x.time_idx_first_prediction == 15)),
+        # encoder_data.filter(lambda x: (x.Tickers == ticker) & (x.time_idx_first_prediction == 15)),
+        encoder_data,
         mode="raw",
         return_x=True,
         trainer_kwargs=dict(accelerator='cpu')
@@ -181,10 +181,10 @@ def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
 
     tensor = prediction.output[0]
     row_means = torch.mean(tensor, dim=2)
-    values_as_float = row_means[0].to_list()
+    values_as_float = row_means[0].tolist()
 
-    print("\n✅ prediction done: ", prediction, prediction.shape, "\n")
-    return prediction, values_as_float
+    print("\n✅ prediction done","\n")
+    return encoder_data, prediction, values_as_float
 
 
 if __name__ == '__main__':
