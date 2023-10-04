@@ -36,7 +36,12 @@ def get_last_day_of_month(date_str):
     Returns:
         datetime: Last day of the month as a datetime object.
     """
-    year, month = map(int, date_str.split('-'))
+    if date_str is not None:
+        year, month = map(int, date_str.split('-'))
+    else:
+        year, month = 2023, 8
     last_day = calendar.monthrange(year, month)[1]
     last_day_date = datetime(year, month, last_day)
+    last_day_date = last_day_date.strftime('%Y-%m-%d')
+
     return last_day_date
