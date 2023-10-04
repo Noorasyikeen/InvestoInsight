@@ -102,7 +102,10 @@ def get_stock_price(date, ticker):
     try:
         df = gcp_csv_to_df(bucket_name=BUCKET_NAME,
                            gcs_dataset=GCS_DATASET)
-        price = df[(df['Date'] == date) & (df['Ticker'] == ticker)]['Price'].values[0]
+        price = df[(df['Date'] == date) & (df['Tickers'] == ticker)]['stock_price'].values[0]
         return price
+
     except IndexError:
+        mean_price = df[df['Tickers'] == ticker]['stock_price'].mean()
+        # return mean_price
         return None
