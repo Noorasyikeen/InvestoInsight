@@ -1,7 +1,10 @@
 import streamlit as st
 import datetime
 import requests
-from ii_model import
+import matplotlib.pyplot as plt
+import plotly.express as px
+
+from ii_model import *
 
 st.title("InvestoInsight")
 st.write("See Tomorrow's Profits Today")
@@ -9,22 +12,33 @@ curr_time_raw = datetime.datetime.now()
 current_time = curr_time_raw.strftime("%Y-%m-%d %H:%M:%S")
 ticker = "MMM"
 returns = "10%"
-atr_period = 14
+
 
 with st.sidebar.form(key='params_for_api'):
     ticker = st.text_input('Enter Ticker Symbol', value=ticker)
-    start_date = st.date_input('Investment Date', value=datetime.datetime(2012, 10, 6, 12, 10, 20))
-    end_date = st.date_input('Divestment Date', value=datetime.datetime(2012, 10, 6, 12, 10, 20))
+    investment_date = st.date_input('Investment Date', value=datetime.datetime(2012, 10, 6, 12, 10, 20))
+    divestment_date = st.date_input('Divestment Date', value=datetime.datetime(2012, 10, 6, 12, 10, 20))
     txn_price = st.number_input('Previously transacted price (optional)', value=40.20)
     option_raw = st.radio("Select an objective", ["Calculate Expected Return", "Suggest Ideal Divestment Date", "Show Future Direction"])
-    st.form_submit_button('Submit')
+    if st.form_submit_button("Submit"):
+        option, price_predictions = update_options(option_raw)
 
-if option_raw == "Calculate Expected Return":
-    option = 1
-elif option_raw == "Suggest Ideal Divestment Date":
-    option = 2
-elif option_raw == "Show Future Direction":
-    option = 3
+
+if 'option' in locals():
+    # result = model_run(option)
+    st.title(f"Result for {ticker}")
+    st.write(f"Results for {ticker} last refreshed on {current_time}")
+
+    result = model_run(option)
+    for i in range(len(result)):
+        st.write(result[i])
+
+    fig = plt.figure(figsize=(12, 6))
+    fig = px.line(price_predictions, x="Date", y="stock_price", title=f"Stock Price for {ticker}",
+                  labels={"stock_price": "Stock Price"},
+                  hover_data={"stock_price": ":.2f"})
+    fig.update_traces(mode="lines+markers")
+    st.plotly_chart(fig)
 
 # params = dict(
 #     ticker=ticker,
@@ -36,30 +50,30 @@ elif option_raw == "Show Future Direction":
 # api_url = 'https://taxifare.lewagon.ai/predict'
 # response = requests.get(api_url, params=params)
 
-prediction = response.json()
+# prediction = response.json()
 
-pred = prediction['fare']
+# pred = prediction['fare']
 
-st.header(f'Fare amount: ${round(pred, 2)}')
-st.write(f"returns: {returns}")
+# st.header(f'Fare amount: ${round(pred, 2)}')
+# st.write(f"returns: {returns}")
 
-df = pd.DataFrame(response["stock_prices"])
+# df = pd.DataFrame(response["stock_prices"])
 
-# Define function to plot chart
-def plot_stock_prices(df):
-    st.title("Stock Price Plot")
-    fig = px.line(stock_prices_df, x="Date", y="stock_price", title="Stock Price Over Time",
-                  labels={"stock_price": "Stock Price"},
-                  hover_data={"stock_price": ":.2f"})
-    fig.update_traces(mode="lines+markers")
+# # Define function to plot chart
+# def plot_stock_prices(df):
+#     st.title("Stock Price Plot")
+    # fig = px.line(stock_prices_df, x="Date", y="stock_price", title="Stock Price Over Time",
+    #               labels={"stock_price": "Stock Price"},
+    #               hover_data={"stock_price": ":.2f"})
+    # fig.update_traces(mode="lines+markers")
 
-    st.plotly_chart(fig)
-# plot figure
-plot_stock_prices(response)
+#     st.plotly_chart(fig)
+# # plot figure
+# plot_stock_prices(response)
 
-# display values
-st.write(f"Expected Returns: {response['expected_returns']}")
-st.write(f"Profit: {response['profit']}")
+# # display values
+# st.write(f"Expected Returns: {response['expected_returns']}")
+# st.write(f"Profit: {response['profit']}")
 
 
 #     if option == "Calculate Expected Return":

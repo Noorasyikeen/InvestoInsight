@@ -1,6 +1,6 @@
 # Option 1
 
-predictions = {
+predictions1 = {
 'expected_returns': -14.706674270412186,
 'profit': -26.53153432210283,
 'stock_prices': {
@@ -160,11 +160,54 @@ predictions3 = {
 import plotly.express as px
 import pandas as pd
 
-stock_prices_df = pd.DataFrame(predictions["stock_prices"])
 
-fig = px.line(stock_prices_df, x="Date", y="stock_price", title="Stock Price Over Time",
-              labels={"stock_price": "Stock Price"},
-              hover_data={"stock_price": ":.2f"})
-fig.update_traces(mode="lines+markers")
+def update_options(option_raw):
+    if option_raw == "Calculate Expected Return":
+        option = 1
+        price_predictions = predictions1['stock_prices']
 
-fig.show()
+    elif option_raw == "Suggest Ideal Divestment Date":
+        option = 2
+        price_predictions = predictions2['stock_prices']
+    elif option_raw == "Show Future Direction":
+        option = 3
+        price_predictions = predictions3['stock_prices']
+    return option, price_predictions
+
+def model_run(option):
+    if option == 1:
+        returns = predictions1['expected_returns']
+        profit = predictions1['profit']
+        returns_text = f"Expected Returns: {returns}"
+        profit_text = f"Expected Profit: {profit}"
+        return returns_text, profit_text
+    elif option == 2:
+        returns = predictions2['returns']
+        profit = predictions2['profit']
+        divestment_month = predictions2['divestment_month']
+        price_at_divestment = predictions2['price_at_divestment']
+        divestment_month_text = f"Ideal Divestment Month: {divestment_month}"
+        returns_text = f"Expected Returns: {returns}"
+        profit_text = f"Expected Profit: {profit}"
+        price_at_divestment_text = f"Expected Price at Divestment: {price_at_divestment}"
+        return divestment_month_text, returns_text, profit_text, price_at_divestment_text
+    elif option == 3:
+        returns = predictions3['returns']
+        profit = predictions3['profit']
+        holding_period = predictions3['holding_period']
+        sell_month = predictions3['sell_month']
+        buy_month = predictions3['buy_month']
+        returns_text = f"Expected Returns: {returns}"
+        profit_text = f"Expected Profit: {profit}"
+        buy_month_text = f"Ideal Buy Month: {buy_month}"
+        sell_month_text = f"Ideal Sell Month: {sell_month}"
+        holding_period_text = f"Ideal Holding Period: {holding_period}"
+        return returns_text, profit_text, buy_month_text, sell_month_text, holding_period_text
+
+
+# fig = px.line(stock_prices_df, x="Date", y="stock_price", title="Stock Price Over Time",
+#               labels={"stock_price": "Stock Price"},
+#               hover_data={"stock_price": ":.2f"})
+# fig.update_traces(mode="lines+markers")
+
+# fig.show()
