@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import requests
+from ii_model import
 
 st.title("InvestoInsight")
 st.write("See Tomorrow's Profits Today")
@@ -25,15 +26,15 @@ elif option_raw == "Suggest Ideal Divestment Date":
 elif option_raw == "Show Future Direction":
     option = 3
 
-params = dict(
-    ticker=ticker,
-    start_date=start_date,
-    end_date=end_date,
-    txn_price=txn_price,
-    option=option)
+# params = dict(
+#     ticker=ticker,
+#     start_date=start_date,
+#     end_date=end_date,
+#     txn_price=txn_price,
+#     option=option)
 
-api_url = 'https://taxifare.lewagon.ai/predict'
-response = requests.get(api_url, params=params)
+# api_url = 'https://taxifare.lewagon.ai/predict'
+# response = requests.get(api_url, params=params)
 
 prediction = response.json()
 
@@ -42,7 +43,23 @@ pred = prediction['fare']
 st.header(f'Fare amount: ${round(pred, 2)}')
 st.write(f"returns: {returns}")
 
+df = pd.DataFrame(response["stock_prices"])
 
+# Define function to plot chart
+def plot_stock_prices(df):
+    st.title("Stock Price Plot")
+    fig = px.line(stock_prices_df, x="Date", y="stock_price", title="Stock Price Over Time",
+                  labels={"stock_price": "Stock Price"},
+                  hover_data={"stock_price": ":.2f"})
+    fig.update_traces(mode="lines+markers")
+
+    st.plotly_chart(fig)
+# plot figure
+plot_stock_prices(response)
+
+# display values
+st.write(f"Expected Returns: {response['expected_returns']}")
+st.write(f"Profit: {response['profit']}")
 
 
 #     if option == "Calculate Expected Return":
