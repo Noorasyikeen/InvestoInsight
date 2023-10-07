@@ -65,10 +65,16 @@ def predict(
         input_date (str): Input date in "%Y-%m" format (e.g., 2023-08).
         option (int, optional): Processing option: 1, 2, or 3.
         end_date (str, optional): Optional end date in "%Y-%m" format.
-        txn_price (floar, optional): Optional price bought.
+        txn_price (float, optional): Optional price bought.
     Returns:
         dict: Response JSON based on the selected option.
     """
+    # ticker = 'AAPL'
+    # input_date = '2023-08'
+    # end_date = '2023-12'
+    # option = 1
+    # txn_price = None
+    # print(ticker, input_date, end_date, option)
 
     # locals() gets us all of our arguments back as a dictionary
     # https://docs.python.org/3/library/functions.html#locals
@@ -79,7 +85,7 @@ def predict(
 
     model = app.state.model
     assert model is not None
-
+    # print(model)
     start_date = pd.to_datetime("2023-10-31") # datetime.date.today()
     target_date = pd.to_datetime(end_date)
     formatted_dates = gen_date(start_date=start_date)
@@ -93,7 +99,7 @@ def predict(
     encoder_data, predictions, values_as_float = pred(ticker=ticker)
     prediction_data = {'Date': formatted_dates, 'stock_price': values_as_float}
     prediction_data = pd.DataFrame(prediction_data)
-
+    # print(prediction_data)
     chart_data = get_chart_data(encoder_data=encoder_data)
 
     stock_prices = pd.concat([chart_data, prediction_data],
@@ -101,6 +107,7 @@ def predict(
                              ignore_index=True)
     stock_prices['Date'] = pd.to_datetime(stock_prices['Date']).dt.strftime('%Y-%m')
     stock_prices = stock_prices.to_dict()
+    # print(stock_prices)
 
     # Option 1: Expected Returns
     if option == 1:
@@ -191,6 +198,8 @@ def predict(
         }
         return response_data
 
-@app.get("/")
-def root():
-    return dict(greeting="Hi there.")
+# @app.get("/")
+# def root():
+#     return dict(greeting="Hi there.")
+
+# predict()

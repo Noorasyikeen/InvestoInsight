@@ -142,7 +142,7 @@ def pred(ticker):
 
     model = load_model()
     assert model is not None
-
+    print(model)
     data = preprocess()
 
     start_date = pd.to_datetime("2018-01-31")
@@ -170,7 +170,7 @@ def pred(ticker):
 
     # combine encoder and decoder data
     new_prediction_data = pd.concat([encoder_data, decoder_data], ignore_index=True)
-
+    print(new_prediction_data)
     prediction = model.predict(
         # encoder_data.filter(lambda x: (x.Tickers == ticker) & (x.time_idx_first_prediction == 15)),
         encoder_data,
@@ -178,6 +178,7 @@ def pred(ticker):
         return_x=True,
         trainer_kwargs=dict(accelerator='cpu')
     )
+    print(prediction)
 
     tensor = prediction.output[0]
     row_means = torch.mean(tensor, dim=2)

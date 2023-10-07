@@ -1,6 +1,14 @@
 FROM python:3.10.6-buster
 
-WORKDIR /prod
+# RUN mkdir /app
+
+# COPY data-science-bc-970805-67a6d0564b74.json credentials.json
+# RUN chmod 644 /app/credentials.json
+
+
+ENV GOOGLE_APPLICATION_CREDENTIALS="/Users/huiye/code/data-science-bc-970805-67a6d0564b74.json"
+
+# WORKDIR /prod
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
