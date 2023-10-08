@@ -214,7 +214,9 @@ def simulate_data_loading():
 
 # Display the loading animation
 loading_placeholder = st.empty()
-loading_placeholder.image("loading_indicator.gif", use_column_width=True, caption="Loading...")
+loading_placeholder.image("loading_indicator.gif",
+                          use_column_width=True,
+                          caption="Crunching the latest data, just for you...")
 
 # Simulate data loading (replace this with your actual data loading code)
 simulate_data_loading()
