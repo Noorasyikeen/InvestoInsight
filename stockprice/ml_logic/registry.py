@@ -168,7 +168,7 @@ def load_model(stage="Production"):
         model = None
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
         client = MlflowClient()
-
+        print(123)
         try:
             model_versions = client.get_latest_versions(name=MLFLOW_MODEL_NAME, stages=[stage])
             model_uri = model_versions[0].source
