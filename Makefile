@@ -50,3 +50,24 @@ test_api_predict:
 test_api_on_prod:
 	pytest \
 	tests/api/test_cloud_endpoints.py --asyncio-mode=strict -W "ignore"
+
+################### DATA SOURCES ACTIONS ################
+
+# Data sources: targets for monthly data imports
+ML_DIR=~/.lewagon/mlops
+
+reset_local_files:
+	rm -rf ${ML_DIR}
+	mkdir -p ~/.lewagon/mlops/data/
+	mkdir ~/.lewagon/mlops/data/raw
+	mkdir ~/.lewagon/mlops/data/processed
+	mkdir ~/.lewagon/mlops/training_outputs
+	mkdir ~/.lewagon/mlops/training_outputs/metrics
+	mkdir ~/.lewagon/mlops/training_outputs/models
+	mkdir ~/.lewagon/mlops/training_outputs/params
+
+reset_gcs_files:
+	-gsutil rm -r gs://${BUCKET_NAME}
+	-gsutil mb -p ${GCP_PROJECT} -l ${GCP_REGION} gs://${BUCKET_NAME}
+
+reset_all_files: reset_local_files reset_gcs_files
