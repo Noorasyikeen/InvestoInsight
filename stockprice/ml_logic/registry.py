@@ -144,9 +144,9 @@ def load_model(stage="Production"):
 
             # Find the latest .pth model based on the 'updated' timestamp
             latest_blob = max(pth_blobs, key=lambda x: x.updated)
-            latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
-            # model_path = f"gs://{BUCKET_NAME}/models/20231003-233216.pth"
-            # latest_model_path_to_save = model_path
+            # latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
+            model_path = f"gs://{BUCKET_NAME}/models/20231003-233216.pth"
+            latest_model_path_to_save = model_path
 
             latest_blob.download_to_filename(latest_model_path_to_save)
 
