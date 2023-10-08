@@ -22,13 +22,13 @@ def timeseries_instance(data):
     Create multivariate timeseries instance
     """
     prediction_length=6
-    train_split = data["time_idx"].max() - prediction_length
+    train_split = data["Index"].max() - prediction_length
 
     training = TimeSeriesDataSet(
-        data[lambda x:x.time_idx <= train_split],
+        data[lambda x:x.Index <= train_split],
         group_ids=['Tickers'],
         target='stock_price',
-        time_idx='time_idx',
+        time_idx='Index',
         max_encoder_length=6,
         max_prediction_length=6,
         static_categoricals=['Tickers'],
