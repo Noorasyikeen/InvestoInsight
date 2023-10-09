@@ -198,8 +198,8 @@ def predict(
         }
         return response_data
 
-# @app.get("/")
-# def root():
-#     return dict(greeting="Hi there.")
+@app.get("/")
+def root():
+    return dict(greeting="Hi there.")
 
 # predict()

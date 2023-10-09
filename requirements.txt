@@ -1,7 +1,7 @@
 colorama==0.4.6
 # cpflows==0.1.2
 fastapi==0.103.1
-google-cloud-bigquery
+# google-cloud-bigquery
 google-cloud-storage
 # httpx
 # ipdb==0.13.13
