@@ -10,22 +10,8 @@ from colorama import Fore, Style
 from google.cloud import storage
 
 from stockprice.params import *
-# import mlflow
-# from mlflow.tracking import MlflowClient
 
 def save_results(params: dict, metrics: dict) -> None:
-    """
-    Persist params & metrics locally on the hard drive at
-    "{LOCAL_REGISTRY_PATH}/params/{current_timestamp}.pickle"
-    "{LOCAL_REGISTRY_PATH}/metrics/{current_timestamp}.pickle"
-    - (unit 03 only) if MODEL_TARGET='mlflow', also persist them on MLflow
-    """
-    # if MODEL_TARGET == "mlflow":
-    #     if params is not None:
-    #         mlflow.log_params(params)
-    #     if metrics is not None:
-    #         mlflow.log_metrics(metrics)
-    #     print("✅ Results saved on MLflow")
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
 
@@ -78,17 +64,6 @@ def save_model(model) -> None:
         print("✅ Model saved to GCS")
 
         return None
-
-    # if MODEL_TARGET == "mlflow":
-    #     mlflow.tensorflow.log_model(
-    #         model=model,
-    #         artifact_path="model",
-    #         registered_model_name=MLFLOW_MODEL_NAME
-    #     )
-
-    #     print("✅ Model saved to MLflow")
-
-    #     return None
 
     return None
 
@@ -143,15 +118,14 @@ def load_model(stage="Production"):
                 return None
 
             # Find the latest .pth model based on the 'updated' timestamp
-            latest_blob = max(pth_blobs, key=lambda x: x.updated)
-            latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
-            # model_path = f"gs://{BUCKET_NAME}/models/20231003-233216.pth"
-            # latest_model_path_to_save = model_path
-
-            latest_blob.download_to_filename(latest_model_path_to_save)
-
-            # Load the latest .pth model
-            tft_model = torch.load(latest_model_path_to_save)
+            # latest_blob = max(pth_blobs, key=lambda x: x.updated)
+            # client = storage.Client()
+            # bucket = client.get_bucket(BUCKET_NAME)
+            # blob = bucket.blob(latest_blob)
+            # latest_model_path = "model/models_{latest_blob}.pth"
+            # blob.download_to_filename(latest_model_path)
+            model_path = "model/models_20231003-233216.pth"
+            tft_model = torch.load(model_path)
 
             print("✅ Latest .pth model downloaded from cloud storage")
 
