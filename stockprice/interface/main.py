@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from google.cloud import storage
 
 from stockprice.params import *
-from stockprice.ml_logic.data import get_data_with_cache, clean_data, df_to_gcp_csv
+from stockprice.ml_logic.data import get_data_with_cache, clean_data, df_to_gcp_csv, gcp_csv_to_df
 from stockprice.ml_logic.TFT_preprocessor import preprocessing
 from stockprice.ml_logic.TFT_model import timeseries_instance, dataloader, optimal_learning_rate, initialize_model, train_model, evaluate_model
 from stockprice.ml_logic.registry import load_model, save_model, save_results
@@ -23,13 +23,17 @@ def preprocess() -> None:
     print(Fore.MAGENTA + "\n ⭐️ Use case: preprocess" + Style.RESET_ALL)
 
     # Retrieve data using `get_data_with_cache`
-    data_query_cache_path = Path(LOCAL_DATA_PATH).joinpath("raw", f"{GCS_DATASET}.csv")
-    data_query = get_data_with_cache(
-        bucket_name = BUCKET_NAME,
-        # gcp_project=GCP_PROJECT,
+    # data_query_cache_path = Path(LOCAL_DATA_PATH).joinpath("raw", f"{GCS_DATASET}.csv")
+    # data_query = get_data_with_cache(
+    #     bucket_name = BUCKET_NAME,
+    #     # gcp_project=GCP_PROJECT,
+    #     gcs_dataset=GCS_DATASET,
+    #     cache_path=data_query_cache_path,
+    #     data_has_header=True
+    # )
+    data_query = gcp_csv_to_df(
+        bucket_name=BUCKET_NAME,
         gcs_dataset=GCS_DATASET,
-        cache_path=data_query_cache_path,
-        data_has_header=True
     )
 
     # Process data
