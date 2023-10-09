@@ -23,7 +23,8 @@ GCR_MEMORY = os.environ.get("GCR_MEMORY")
 
 ##################  CONSTANTS  #####################
 LOCAL_DATA_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "data")
-LOCAL_REGISTRY_PATH =  os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "training_outputs")
+# LOCAL_REGISTRY_PATH =  os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "training_outputs")
+LOCAL_REGISTRY_PATH = "tft"
 
 COLUMN_NAMES_RAW = ['Date', 'Dividend', 'Volume', 'stock_price',
        'fed_funds_rate', 'GDP', 'Tickers', 'debt_to_equity', 'EPS',
