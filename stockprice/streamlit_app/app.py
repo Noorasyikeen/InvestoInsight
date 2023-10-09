@@ -59,7 +59,8 @@ loading_placeholder.image("IMG_8659.gif",
 # Simulate data loading (replace this with your actual data loading code)
 simulate_data_loading()
 
-uvicorn_server_url = "http://localhost:8050/predict/"
+# uvicorn_server_url = "http://localhost:8050/predict/"
+service_url = "https://stockprice-uedfuco6ca-ew.a.run.app"
 
 investment_date = investment_date.strftime("%Y-%m")
 divestment_date = divestment_date.strftime("%Y-%m")
@@ -77,7 +78,7 @@ if txn_price is not None:
     params["txn_price"] = txn_price
 
 # response = requests.get("http://localhost:8050/predict?ticker=AAPL&input_date=2023-08&option=2")
-response = requests.get(uvicorn_server_url, params=params)
+response = requests.get(service_url, params=params)
 
 # Check the response status code and content
 if response.status_code == 200:
