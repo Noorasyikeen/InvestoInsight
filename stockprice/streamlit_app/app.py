@@ -2,6 +2,8 @@ import streamlit as st
 import datetime
 import requests
 import time
+import os
+import base64
 import matplotlib.pyplot as plt
 import plotly.express as px
 import pandas as pd
@@ -52,15 +54,17 @@ def simulate_data_loading():
 
 # Display the loading animation
 # loading_placeholder = st.empty()
-loading_placeholder = st.image("loading-indicator.gif",
-                          use_column_width=True,
-                          caption="Crunching the latest data, just for you...")
+image_path = 'stockprice/streamlit_app/loading-indicator.gif'
+# Convert the image bytes to base64
+loading_placeholder= st.image(image_path,
+                              use_column_width=True,
+                              caption="Crunching the latest data, just for you...")
 
 # Simulate data loading (replace this with your actual data loading code)
 simulate_data_loading()
 
 # uvicorn_server_url = "http://localhost:8050/predict/"
-service_url = "https://stockprice-uedfuco6ca-ew.a.run.app"
+service_url = "https://stockprice-uedfuco6ca-ew.a.run.app/predict/"
 
 investment_date = investment_date.strftime("%Y-%m")
 divestment_date = divestment_date.strftime("%Y-%m")
