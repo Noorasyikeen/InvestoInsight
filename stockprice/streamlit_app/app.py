@@ -51,8 +51,8 @@ def simulate_data_loading():
         time.sleep(1)
 
 # Display the loading animation
-loading_placeholder = st.empty()
-loading_placeholder.image("IMG_8659.gif",
+# loading_placeholder = st.empty()
+loading_placeholder = st.image("loading-indicator.gif",
                           use_column_width=True,
                           caption="Crunching the latest data, just for you...")
 
