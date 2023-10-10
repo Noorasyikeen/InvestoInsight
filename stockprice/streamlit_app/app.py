@@ -52,7 +52,7 @@ def simulate_data_loading():
 
 # Display the loading animation
 loading_placeholder = st.empty()
-loading_placeholder.image("happy-dance.gif",
+loading_placeholder.image("IMG_8659.gif",
                           use_column_width=True,
                           caption="Crunching the latest data, just for you...")
 
